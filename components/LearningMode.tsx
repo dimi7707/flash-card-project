@@ -175,11 +175,6 @@ export default function LearningMode() {
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
             {currentCard.english_word}
           </h2>
-          {currentCard.note && (
-            <p className="text-gray-600 italic text-lg">
-              Note: {currentCard.note}
-            </p>
-          )}
         </div>
 
         <div className="space-y-4">
@@ -247,6 +242,17 @@ export default function LearningMode() {
                   <p className="text-gray-700 mb-1">The correct answer is:</p>
                   <p className="text-xl font-semibold text-gray-900">
                     {currentCard.spanish_translation}
+                  </p>
+                </div>
+              )}
+
+              {currentCard.note && (
+                <div className="text-center mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm font-semibold text-blue-900 mb-1">
+                    📝 Note:
+                  </p>
+                  <p className="text-blue-800 italic">
+                    {currentCard.note}
                   </p>
                 </div>
               )}

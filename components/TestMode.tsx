@@ -190,12 +190,6 @@ export default function TestMode() {
           <h3 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
             {currentCard.english_word}
           </h3>
-
-          {currentCard.note && (
-            <p className="text-gray-600 italic text-lg">
-              Hint: {currentCard.note}
-            </p>
-          )}
         </div>
 
         <div className="space-y-4">
