@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    container_name: flashcard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flashcard_user
+      POSTGRES_PASSWORD: flashcard_password
+      POSTGRES_DB: flashcards
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashcard_user -d flashcards"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Next.js application (development)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flashcard-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://flashcard_user:flashcard_password@db:5432/flashcards?schema=public
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
