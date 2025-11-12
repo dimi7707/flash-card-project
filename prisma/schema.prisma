@@ -16,7 +16,7 @@ datasource db {
 model Card {
   id                    String   @id @default(cuid())
   english_word          String   @unique @db.VarChar(100)
-  spanish_translation   String   @db.VarChar(100)
+  spanish_translations  Json     // JSONB array of translation strings
   note                  String?  @db.VarChar(500)
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt

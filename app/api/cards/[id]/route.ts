@@ -43,12 +43,12 @@ export async function PUT(
   try {
     const { id } = params;
     const body = await request.json();
-    const { english_word, spanish_translation, note } = body;
+    const { english_word, spanish_translations, note } = body;
 
     // Build update data object
     const updateData: {
       english_word?: string;
-      spanish_translation?: string;
+      spanish_translations?: string[];
       note?: string | null;
     } = {};
 
@@ -76,28 +76,67 @@ export async function PUT(
       updateData.english_word = english_word.trim();
     }
 
-    // Validate and add spanish_translation if provided
-    if (spanish_translation !== undefined) {
-      if (typeof spanish_translation !== 'string') {
+    // Validate and add spanish_translations if provided
+    if (spanish_translations !== undefined) {
+      if (!Array.isArray(spanish_translations)) {
         return NextResponse.json(
-          { error: 'Spanish translation must be a string' },
+          { error: 'Spanish translations must be an array' },
           { status: 400 }
         );
       }
 
-      const spanishValidation = validateLength(
-        spanish_translation,
-        100,
-        'Spanish translation'
-      );
-      if (!spanishValidation.valid) {
+      if (spanish_translations.length === 0) {
         return NextResponse.json(
-          { error: spanishValidation.error },
+          { error: 'At least one Spanish translation is required' },
           { status: 400 }
         );
       }
 
-      updateData.spanish_translation = spanish_translation.trim();
+      if (spanish_translations.length > 10) {
+        return NextResponse.json(
+          { error: 'Maximum 10 translations allowed' },
+          { status: 400 }
+        );
+      }
+
+      // Validate each translation
+      const trimmedTranslations: string[] = [];
+      for (let i = 0; i < spanish_translations.length; i++) {
+        const translation = spanish_translations[i];
+
+        if (typeof translation !== 'string') {
+          return NextResponse.json(
+            { error: `Translation ${i + 1} must be a string` },
+            { status: 400 }
+          );
+        }
+
+        const validation = validateLength(
+          translation,
+          100,
+          `Translation ${i + 1}`
+        );
+        if (!validation.valid) {
+          return NextResponse.json(
+            { error: validation.error },
+            { status: 400 }
+          );
+        }
+
+        const trimmed = translation.trim();
+        if (trimmed.length > 0) {
+          trimmedTranslations.push(trimmed);
+        }
+      }
+
+      if (trimmedTranslations.length === 0) {
+        return NextResponse.json(
+          { error: 'At least one non-empty translation is required' },
+          { status: 400 }
+        );
+      }
+
+      updateData.spanish_translations = trimmedTranslations;
     }
 
     // Validate and add note if provided

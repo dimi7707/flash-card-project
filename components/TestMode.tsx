@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ProgressBar from '@/components/ui/ProgressBar';
 import ResultsScreen from '@/components/ResultsScreen';
-import { compareStrings } from '@/lib/utils';
+import { validateMultipleTranslations } from '@/lib/utils';
 import { flipCard, fadeIn } from '@/lib/animations';
 import { PlayCircle } from 'lucide-react';
 
@@ -70,17 +70,19 @@ export default function TestMode() {
     }
 
     const currentCard = cards[currentIndex];
-    const correct = compareStrings(
+    const validationDetails = validateMultipleTranslations(
       userAnswer,
-      currentCard.spanish_translation
+      currentCard.spanish_translations
     );
 
     const result: TestResult = {
       cardId: currentCard.id,
       english_word: currentCard.english_word,
-      spanish_translation: currentCard.spanish_translation,
+      spanish_translations: currentCard.spanish_translations,
       userAnswer: userAnswer.trim(),
-      isCorrect: correct,
+      userAnswers: validationDetails.userAnswers,
+      isCorrect: validationDetails.isValid, // At least 1 correct = pass
+      validationDetails,
     };
 
     setResults((prev) => [...prev, result]);
@@ -203,8 +205,9 @@ export default function TestMode() {
                 handleSubmitAnswer();
               }
             }}
-            placeholder="Type the Spanish translation"
+            placeholder="Type translation(s) - separate multiple with commas"
             className="text-lg"
+            helperText="💡 You can enter multiple translations to score higher"
           />
 
           <Button

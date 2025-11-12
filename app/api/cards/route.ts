@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { english_word, spanish_translation, note } = body;
+    const { english_word, spanish_translations, note } = body;
 
     // Validate english_word
     if (!english_word || typeof english_word !== 'string') {
@@ -50,22 +50,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate spanish_translation
-    if (!spanish_translation || typeof spanish_translation !== 'string') {
+    // Validate spanish_translations (must be array)
+    if (!spanish_translations || !Array.isArray(spanish_translations)) {
       return NextResponse.json(
-        { error: 'Spanish translation is required' },
+        { error: 'Spanish translations must be an array' },
         { status: 400 }
       );
     }
 
-    const spanishValidation = validateLength(
-      spanish_translation,
-      100,
-      'Spanish translation'
-    );
-    if (!spanishValidation.valid) {
+    if (spanish_translations.length === 0) {
       return NextResponse.json(
-        { error: spanishValidation.error },
+        { error: 'At least one Spanish translation is required' },
+        { status: 400 }
+      );
+    }
+
+    if (spanish_translations.length > 10) {
+      return NextResponse.json(
+        { error: 'Maximum 10 translations allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate each translation
+    const trimmedTranslations: string[] = [];
+    for (let i = 0; i < spanish_translations.length; i++) {
+      const translation = spanish_translations[i];
+
+      if (typeof translation !== 'string') {
+        return NextResponse.json(
+          { error: `Translation ${i + 1} must be a string` },
+          { status: 400 }
+        );
+      }
+
+      const validation = validateLength(
+        translation,
+        100,
+        `Translation ${i + 1}`
+      );
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      const trimmed = translation.trim();
+      if (trimmed.length > 0) {
+        trimmedTranslations.push(trimmed);
+      }
+    }
+
+    if (trimmedTranslations.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one non-empty translation is required' },
         { status: 400 }
       );
     }
@@ -85,11 +124,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create card
+    // Create card with translations as JSON
     const card = await prisma.card.create({
       data: {
         english_word: english_word.trim(),
-        spanish_translation: spanish_translation.trim(),
+        spanish_translations: trimmedTranslations, // Prisma will convert to JSON
         note: note ? note.trim() : null,
       },
     });

@@ -131,66 +131,83 @@ export default function ResultsScreen({
         </h3>
 
         <div ref={resultsListRef} className="space-y-4">
-          {results.map((result, index) => (
-            <div
-              key={result.cardId}
-              className={`result-item p-5 rounded-lg border-2 transition-all duration-200 ${
-                result.isCorrect
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center mb-2">
-                    <span className="bg-white px-3 py-1 rounded-full text-sm font-semibold text-gray-700 mr-3">
-                      #{index + 1}
-                    </span>
-                    {result.isCorrect ? (
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    ) : (
-                      <XCircle className="w-6 h-6 text-red-600" />
-                    )}
-                  </div>
-
-                  <div className="mb-2">
-                    <span className="text-gray-600 text-sm">English:</span>
-                    <p className="text-xl font-bold text-gray-900">
-                      {result.english_word}
-                    </p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-gray-600 text-sm">
-                        Your Answer:
+          {results.map((result, index) => {
+            const status = result.validationDetails.status;
+            return (
+              <div
+                key={result.cardId}
+                className={`result-item p-5 rounded-lg border-2 transition-all duration-200 ${
+                  status === 'all'
+                    ? 'bg-green-50 border-green-200'
+                    : status === 'partial'
+                    ? 'bg-warning-50 border-warning-200'
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      <span className="bg-white px-3 py-1 rounded-full text-sm font-semibold text-gray-700 mr-3">
+                        #{index + 1}
                       </span>
-                      <p
-                        className={`text-lg font-semibold ${
-                          result.isCorrect
-                            ? 'text-green-700'
-                            : 'text-red-700'
-                        }`}
-                      >
-                        {result.userAnswer}
+                      {status === 'all' ? (
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                      ) : status === 'partial' ? (
+                        <CheckCircle className="w-6 h-6 text-warning-600" />
+                      ) : (
+                        <XCircle className="w-6 h-6 text-red-600" />
+                      )}
+                      {status === 'partial' && (
+                        <span className="ml-2 text-sm font-semibold text-warning-700">
+                          ({result.validationDetails.correctCount}/
+                          {result.validationDetails.totalProvided} correct)
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mb-3">
+                      <span className="text-gray-600 text-sm">English:</span>
+                      <p className="text-xl font-bold text-gray-900">
+                        {result.english_word}
                       </p>
                     </div>
 
-                    {!result.isCorrect && (
-                      <div>
-                        <span className="text-gray-600 text-sm">
-                          Correct Answer:
-                        </span>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {result.spanish_translation}
-                        </p>
+                    {/* Valid Translations */}
+                    <div className="mb-3">
+                      <span className="text-gray-600 text-sm">
+                        Valid translations:
+                      </span>
+                      <p className="text-md text-gray-700">
+                        {result.spanish_translations.join(', ')}
+                      </p>
+                    </div>
+
+                    {/* User's answers breakdown */}
+                    <div className="mb-2">
+                      <span className="text-gray-600 text-sm">Your answers:</span>
+                      <div className="mt-1 space-y-1">
+                        {result.userAnswers.map((answer, idx) => {
+                          const isCorrect = result.validationDetails.correctAnswers.includes(answer);
+                          return (
+                            <div key={idx} className="flex items-center gap-2">
+                              {isCorrect ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-red-600" />
+                              )}
+                              <span className={isCorrect ? 'text-green-700' : 'text-red-700'}>
+                                {answer}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 

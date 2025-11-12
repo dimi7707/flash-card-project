@@ -50,6 +50,30 @@ export function successAnimation(element: HTMLElement): gsap.core.Timeline {
 }
 
 /**
+ * Partial success feedback animation (yellow/orange pulse/glow)
+ * Used when user gets some but not all translations correct
+ */
+export function partialSuccessAnimation(
+  element: HTMLElement
+): gsap.core.Timeline {
+  const tl = gsap.timeline();
+
+  tl.to(element, {
+    scale: 1.05,
+    boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)', // warning-500 color
+    duration: 0.3,
+    ease: 'power2.out',
+  }).to(element, {
+    scale: 1,
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    duration: 0.3,
+    ease: 'power2.in',
+  });
+
+  return tl;
+}
+
+/**
  * Error feedback animation (red shake)
  */
 export function errorAnimation(element: HTMLElement): gsap.core.Timeline {

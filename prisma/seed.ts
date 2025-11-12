@@ -5,103 +5,108 @@ const prisma = new PrismaClient();
 const sampleCards = [
   {
     english_word: 'Hello',
-    spanish_translation: 'Hola',
+    spanish_translations: ['Hola'],
     note: 'Common greeting',
   },
   {
     english_word: 'Goodbye',
-    spanish_translation: 'Adiós',
-    note: 'Farewell greeting',
+    spanish_translations: ['Adiós', 'Chao'],
+    note: 'Farewell greeting - multiple ways to say it',
   },
   {
     english_word: 'Thank you',
-    spanish_translation: 'Gracias',
+    spanish_translations: ['Gracias'],
     note: 'Expression of gratitude',
   },
   {
     english_word: 'Please',
-    spanish_translation: 'Por favor',
+    spanish_translations: ['Por favor'],
     note: 'Polite request',
   },
   {
     english_word: 'Yes',
-    spanish_translation: 'Sí',
+    spanish_translations: ['Sí'],
     note: 'Affirmative response',
   },
   {
     english_word: 'No',
-    spanish_translation: 'No',
+    spanish_translations: ['No'],
     note: 'Negative response',
   },
   {
     english_word: 'Water',
-    spanish_translation: 'Agua',
+    spanish_translations: ['Agua'],
     note: 'Essential beverage',
   },
   {
     english_word: 'Food',
-    spanish_translation: 'Comida',
+    spanish_translations: ['Comida', 'Alimento'],
     note: 'General term for nourishment',
   },
   {
     english_word: 'Friend',
-    spanish_translation: 'Amigo',
-    note: 'Male friend; Amiga for female',
+    spanish_translations: ['Amigo', 'Amiga'],
+    note: 'Amigo for male, Amiga for female',
   },
   {
     english_word: 'Family',
-    spanish_translation: 'Familia',
+    spanish_translations: ['Familia'],
     note: 'Relatives and close ones',
   },
   {
     english_word: 'House',
-    spanish_translation: 'Casa',
-    note: 'Place of residence',
+    spanish_translations: ['Casa', 'Hogar'],
+    note: 'Casa is physical structure, Hogar is home',
   },
   {
     english_word: 'Book',
-    spanish_translation: 'Libro',
+    spanish_translations: ['Libro'],
     note: 'Reading material',
   },
   {
     english_word: 'School',
-    spanish_translation: 'Escuela',
-    note: 'Educational institution',
+    spanish_translations: ['Escuela', 'Colegio'],
+    note: 'Educational institution - Escuela is general, Colegio is primary/secondary',
   },
   {
     english_word: 'Time',
-    spanish_translation: 'Tiempo',
-    note: 'Also means weather',
+    spanish_translations: ['Tiempo', 'Hora'],
+    note: 'Tiempo is general time or weather, Hora is hour/time of day',
   },
   {
     english_word: 'Love',
-    spanish_translation: 'Amor',
-    note: 'Strong affection',
+    spanish_translations: ['Amor', 'Cariño'],
+    note: 'Amor is strong love, Cariño is affection/care',
   },
   {
     english_word: 'Happy',
-    spanish_translation: 'Feliz',
-    note: 'Feeling of joy',
+    spanish_translations: ['Feliz', 'Contento', 'Alegre'],
+    note: 'Different degrees of happiness',
   },
   {
     english_word: 'Beautiful',
-    spanish_translation: 'Hermoso',
-    note: 'Hermosa for feminine',
+    spanish_translations: ['Hermoso', 'Hermosa', 'Bello', 'Bella'],
+    note: 'Hermoso/Bello for masculine, Hermosa/Bella for feminine',
   },
   {
     english_word: 'Good',
-    spanish_translation: 'Bueno',
-    note: 'Buena for feminine',
+    spanish_translations: ['Bueno', 'Buena'],
+    note: 'Bueno for masculine, Buena for feminine',
   },
   {
     english_word: 'Bad',
-    spanish_translation: 'Malo',
-    note: 'Mala for feminine',
+    spanish_translations: ['Malo', 'Mala'],
+    note: 'Malo for masculine, Mala for feminine',
   },
   {
     english_word: 'Big',
-    spanish_translation: 'Grande',
-    note: 'Size descriptor',
+    spanish_translations: ['Grande', 'Gran'],
+    note: 'Grande is regular, Gran is shortened form used before nouns',
+  },
+  {
+    english_word: 'Sprinkle',
+    spanish_translations: ['Esparcir', 'Rociar', 'Salpicar'],
+    note: 'Multiple ways to express the action of sprinkling',
   },
 ];
 
@@ -119,7 +124,7 @@ async function main() {
     });
   }
 
-  console.log(`✅ Created ${sampleCards.length} sample flashcards`);
+  console.log(`✅ Created ${sampleCards.length} sample flashcards with multiple translations`);
   console.log('🎉 Seed completed successfully!');
 }
 

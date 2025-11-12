@@ -4,16 +4,18 @@ import { useState, FormEvent, useRef, useEffect } from 'react';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
+import TranslationList from '@/components/TranslationList';
 import { CreateCardInput } from '@/types';
 import { fadeIn, successAnimation } from '@/lib/animations';
 
 export default function AddCardForm() {
   const [formData, setFormData] = useState<CreateCardInput>({
     english_word: '',
-    spanish_translation: '',
+    spanish_translations: [''],
     note: '',
   });
-  const [errors, setErrors] = useState<Partial<CreateCardInput>>({});
+  const [translationErrors, setTranslationErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{ english_word?: string; note?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -42,27 +44,41 @@ export default function AddCardForm() {
   }, [errorMessage]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<CreateCardInput> = {};
+    const newErrors: { english_word?: string; note?: string } = {};
+    const newTranslationErrors: string[] = [];
 
+    // Validate English word
     if (!formData.english_word.trim()) {
       newErrors.english_word = 'English word is required';
     } else if (formData.english_word.trim().length > 100) {
       newErrors.english_word = 'English word must be 100 characters or less';
     }
 
-    if (!formData.spanish_translation.trim()) {
-      newErrors.spanish_translation = 'Spanish translation is required';
-    } else if (formData.spanish_translation.trim().length > 100) {
-      newErrors.spanish_translation =
-        'Spanish translation must be 100 characters or less';
+    // Validate translations
+    const nonEmptyTranslations = formData.spanish_translations.filter(
+      (t) => t.trim().length > 0
+    );
+
+    if (nonEmptyTranslations.length === 0) {
+      newTranslationErrors[0] = 'At least one translation is required';
+    } else {
+      formData.spanish_translations.forEach((translation, index) => {
+        if (translation.trim().length > 0 && translation.trim().length > 100) {
+          newTranslationErrors[index] = 'Must be 100 characters or less';
+        }
+      });
     }
 
+    // Validate note
     if (formData.note && formData.note.trim().length > 500) {
       newErrors.note = 'Note must be 500 characters or less';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setTranslationErrors(newTranslationErrors);
+    return (
+      Object.keys(newErrors).length === 0 && newTranslationErrors.length === 0
+    );
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -77,6 +93,11 @@ export default function AddCardForm() {
     setIsLoading(true);
 
     try {
+      // Filter out empty translations
+      const validTranslations = formData.spanish_translations
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+
       const response = await fetch('/api/cards', {
         method: 'POST',
         headers: {
@@ -84,7 +105,7 @@ export default function AddCardForm() {
         },
         body: JSON.stringify({
           english_word: formData.english_word.trim(),
-          spanish_translation: formData.spanish_translation.trim(),
+          spanish_translations: validTranslations,
           note: formData.note?.trim() || undefined,
         }),
       });
@@ -96,14 +117,15 @@ export default function AddCardForm() {
       }
 
       setSuccessMessage(
-        `Card "${data.english_word}" created successfully!`
+        `Card "${data.english_word}" created successfully with ${validTranslations.length} translation(s)!`
       );
       setFormData({
         english_word: '',
-        spanish_translation: '',
+        spanish_translations: [''],
         note: '',
       });
       setErrors({});
+      setTranslationErrors([]);
 
       // Clear success message after 5 seconds
       setTimeout(() => {
@@ -131,11 +153,13 @@ export default function AddCardForm() {
       [name]: value,
     }));
     // Clear error for this field when user starts typing
-    if (errors[name as keyof CreateCardInput]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
+    if (name === 'english_word' || name === 'note') {
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: undefined,
+        }));
+      }
     }
   };
 
@@ -178,16 +202,17 @@ export default function AddCardForm() {
           required
         />
 
-        <Input
-          label="Spanish Translation"
-          name="spanish_translation"
-          type="text"
-          value={formData.spanish_translation}
-          onChange={handleChange}
-          error={errors.spanish_translation}
-          placeholder="Enter Spanish translation"
+        <TranslationList
+          translations={formData.spanish_translations}
+          onChange={(translations) => {
+            setFormData((prev) => ({
+              ...prev,
+              spanish_translations: translations,
+            }));
+            setTranslationErrors([]);
+          }}
+          errors={translationErrors}
           disabled={isLoading}
-          required
         />
 
         <Textarea
@@ -211,10 +236,11 @@ export default function AddCardForm() {
             onClick={() => {
               setFormData({
                 english_word: '',
-                spanish_translation: '',
+                spanish_translations: [''],
                 note: '',
               });
               setErrors({});
+              setTranslationErrors([]);
               setSuccessMessage('');
               setErrorMessage('');
             }}
