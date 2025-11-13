@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { validateLength } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 
+export const dynamic = 'force-dynamic'
 /**
  * GET /api/cards
  * Fetch all cards from database
