@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    // Get total count of cards
-    const totalCards = await prisma.card.count();
+    // Get all cards
+    const allCards = await prisma.card.findMany();
 
-    if (totalCards === 0) {
+    if (allCards.length === 0) {
       return NextResponse.json(
         { error: 'No cards available. Please create some cards first.' },
         { status: 404 }
@@ -20,17 +20,16 @@ export async function GET() {
     }
 
     // If we have fewer than 15 cards, return all of them
-    const limit = Math.min(15, totalCards);
+    if (allCards.length <= 15) {
+      return NextResponse.json(allCards);
+    }
 
-    // Use database-level randomization for PostgreSQL
-    // For other databases, you might need to adjust this query
-    const randomCards = await prisma.$queryRaw`
-      SELECT * FROM cards
-      ORDER BY RANDOM()
-      LIMIT ${limit}
-    `;
+    // Shuffle and take 15 random cards
+    const shuffled = allCards
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 15);
 
-    return NextResponse.json(randomCards);
+    return NextResponse.json(shuffled);
   } catch (error) {
     console.error('Error fetching random cards:', error);
     return NextResponse.json(
