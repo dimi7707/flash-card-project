@@ -7,8 +7,18 @@ import Button from '@/components/ui/Button';
 import TranslationList from '@/components/TranslationList';
 import { CreateCardInput } from '@/types';
 import { fadeIn, successAnimation } from '@/lib/animations';
+import { useCardForm } from '@/hooks/useCardForm';
 
 export default function AddCardForm() {
+  const {
+    handleSubmit: submitCard,
+    isLoading,
+    successMessage,
+    errorMessage,
+    duplicateError,
+    clearMessages,
+  } = useCardForm();
+
   const [formData, setFormData] = useState<CreateCardInput>({
     english_word: '',
     spanish_translations: [''],
@@ -16,9 +26,6 @@ export default function AddCardForm() {
   });
   const [translationErrors, setTranslationErrors] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ english_word?: string; note?: string }>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
@@ -83,42 +90,13 @@ export default function AddCardForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSuccessMessage('');
-    setErrorMessage('');
 
     if (!validateForm()) {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      // Filter out empty translations
-      const validTranslations = formData.spanish_translations
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-
-      const response = await fetch('/api/cards', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          english_word: formData.english_word.trim(),
-          spanish_translations: validTranslations,
-          note: formData.note?.trim() || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create card');
-      }
-
-      setSuccessMessage(
-        `Card "${data.english_word}" created successfully with ${validTranslations.length} translation(s)!`
-      );
+    await submitCard(formData, () => {
+      // Reset form on success
       setFormData({
         english_word: '',
         spanish_translations: [''],
@@ -126,22 +104,7 @@ export default function AddCardForm() {
       });
       setErrors({});
       setTranslationErrors([]);
-
-      // Clear success message after 5 seconds
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to create card'
-      );
-      // Clear error message after 5 seconds
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 5000);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const handleChange = (
@@ -159,6 +122,10 @@ export default function AddCardForm() {
           ...prev,
           [name]: undefined,
         }));
+      }
+      // Clear duplicate error when user modifies english_word
+      if (name === 'english_word' && duplicateError) {
+        clearMessages();
       }
     }
   };
@@ -190,17 +157,40 @@ export default function AddCardForm() {
       )}
 
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-        <Input
-          label="English Word"
-          name="english_word"
-          type="text"
-          value={formData.english_word}
-          onChange={handleChange}
-          error={errors.english_word}
-          placeholder="Enter English word"
-          disabled={isLoading}
-          required
-        />
+        <div>
+          <Input
+            label="English Word"
+            name="english_word"
+            type="text"
+            value={formData.english_word}
+            onChange={handleChange}
+            error={errors.english_word}
+            placeholder="Enter English word"
+            disabled={isLoading}
+            required
+          />
+          {duplicateError && (
+            <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <p className="text-sm font-semibold text-amber-800">
+                This word already exists in your collection
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                <strong>Word:</strong> {duplicateError.english_word}
+              </p>
+              <p className="text-sm text-amber-700">
+                <strong>Translations:</strong>{' '}
+                {Array.isArray(duplicateError.spanish_translations)
+                  ? duplicateError.spanish_translations.join(', ')
+                  : duplicateError.spanish_translations}
+              </p>
+              {duplicateError.note && (
+                <p className="text-sm text-amber-700">
+                  <strong>Note:</strong> {duplicateError.note}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
 
         <TranslationList
           translations={formData.spanish_translations}
@@ -241,8 +231,7 @@ export default function AddCardForm() {
               });
               setErrors({});
               setTranslationErrors([]);
-              setSuccessMessage('');
-              setErrorMessage('');
+              clearMessages();
             }}
             disabled={isLoading}
           >

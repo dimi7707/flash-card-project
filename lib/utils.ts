@@ -21,6 +21,16 @@ export function compareStrings(str1: string, str2: string): boolean {
 }
 
 /**
+ * Capitalizes a string (first letter uppercase, rest lowercase)
+ * Examples: "hello" -> "Hello", "WORLD" -> "World", "HeLLo" -> "Hello"
+ */
+export function capitalize(str: string): string {
+  const trimmed = str.trim();
+  if (trimmed.length === 0) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+/**
  * Validates string length
  */
 export function validateLength(

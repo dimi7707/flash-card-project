@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { validateLength } from '@/lib/utils';
+import { validateLength, capitalize } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic'
@@ -125,10 +125,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Capitalize the english word for consistent storage and comparison
+    const capitalizedWord = capitalize(english_word);
+
+    // Check for duplicate (exact match since all words are stored capitalized)
+    const existingCard = await prisma.card.findFirst({
+      where: {
+        english_word: capitalizedWord,
+      },
+    });
+
+    if (existingCard) {
+      return NextResponse.json(
+        {
+          error: 'A card with this English word already exists',
+          existingCard: {
+            english_word: existingCard.english_word,
+            spanish_translations: existingCard.spanish_translations,
+            note: existingCard.note,
+          },
+        },
+        { status: 409 }
+      );
+    }
+
     // Create card with translations as JSON
     const card = await prisma.card.create({
       data: {
-        english_word: english_word.trim(),
+        english_word: capitalizedWord,
         spanish_translations: trimmedTranslations, // Prisma will convert to JSON
         note: note ? note.trim() : null,
       },
