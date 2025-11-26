@@ -145,215 +145,222 @@ export default function LearningMode() {
   }
 
   const currentCard = cards[currentIndex];
+  const isCompleted = currentIndex === cards.length - 1 && showFeedback;
 
   return (
     <div className="max-w-3xl mx-auto">
       {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">
-            Card {currentIndex + 1} of {cards.length}
-          </span>
-          <span className="text-sm text-gray-500">
-            {Math.round(((currentIndex + 1) / cards.length) * 100)}% Complete
-          </span>
+      {!isCompleted && (
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Card {currentIndex + 1} of {cards.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round(((currentIndex + 1) / cards.length) * 100)}% Complete
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${((currentIndex + 1) / cards.length) * 100}%`,
+              }}
+            />
+          </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-            style={{
-              width: `${((currentIndex + 1) / cards.length) * 100}%`,
-            }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Main Card */}
-      <Card
-        ref={cardRef}
-        variant="elevated"
-        className="mb-6 perspective-1000"
-      >
-        <div className="text-center mb-8">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-            {currentCard.english_word}
-          </h2>
-        </div>
+      {!isCompleted && (
+        <Card
+          ref={cardRef}
+          variant="elevated"
+          className="mb-6 perspective-1000"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+              {currentCard.english_word}
+            </h2>
+          </div>
 
-        <div className="space-y-4">
-          <Input
-            label="Type the Spanish translation(s):"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !showFeedback) {
-                handleCheck();
-              }
-            }}
-            placeholder="Enter answer (separate multiple with commas: esparcir, rociar)"
-            disabled={showFeedback}
-            className="text-lg"
-            helperText="💡 Tip: You can enter multiple translations separated by commas"
-          />
-
-          {!showFeedback ? (
-            <div className="flex gap-3">
-              <Button
-                onClick={handleCheck}
-                disabled={!userAnswer.trim()}
-                className="flex-1"
-              >
-                <Check className="w-5 h-5 mr-2" />
-                Check Answer
-              </Button>
-              <Button
-                onClick={handleSkip}
-                variant="secondary"
-                disabled={currentIndex === cards.length - 1}
-              >
-                Skip
-              </Button>
-            </div>
-          ) : validationResult && (
-            <div
-              ref={feedbackRef}
-              className={`p-6 rounded-lg ${
-                validationResult.status === 'all'
-                  ? 'bg-green-50 border-2 border-green-500'
-                  : validationResult.status === 'partial'
-                  ? 'bg-warning-50 border-2 border-warning-500'
-                  : 'bg-red-50 border-2 border-red-500'
-              }`}
-            >
-              {/* Header with status */}
-              <div className="flex items-center justify-center mb-4">
-                {validationResult.status === 'all' ? (
-                  <>
-                    <Check className="w-8 h-8 text-green-600 mr-2" />
-                    <span className="text-2xl font-bold text-green-800">
-                      Perfect! All Correct!
-                    </span>
-                  </>
-                ) : validationResult.status === 'partial' ? (
-                  <>
-                    <Check className="w-8 h-8 text-warning-600 mr-2" />
-                    <span className="text-2xl font-bold text-warning-800">
-                      Good! Partially Correct ({validationResult.correctCount}/
-                      {validationResult.totalProvided})
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <X className="w-8 h-8 text-red-600 mr-2" />
-                    <span className="text-2xl font-bold text-red-800">
-                      Incorrect
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* User's answers breakdown */}
-              {validationResult.userAnswers.length > 0 && (
-                <div className="mb-4 p-4 bg-white rounded-lg">
-                  <p className="font-semibold text-gray-700 mb-2">Your answers:</p>
-                  <div className="space-y-1">
-                    {validationResult.userAnswers.map((answer, idx) => {
-                      const isCorrect = validationResult.correctAnswers.includes(answer);
-                      return (
-                        <div key={idx} className="flex items-center gap-2">
-                          {isCorrect ? (
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-600" />
-                          )}
-                          <span className={isCorrect ? 'text-green-700' : 'text-red-700'}>
-                            {answer}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Show missed translations */}
-              {validationResult.missedAnswers.length > 0 && (
-                <div className="mb-4 p-4 bg-white rounded-lg">
-                  <p className="font-semibold text-gray-700 mb-2">
-                    Other valid translations you can learn:
-                  </p>
-                  <div className="space-y-1">
-                    {validationResult.missedAnswers.map((answer, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-lg">•</span>
-                        <span className="text-gray-900">{answer}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Note section */}
-              {currentCard.note && (
-                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm font-semibold text-blue-900 mb-1">
-                    📝 Note:
-                  </p>
-                  <p className="text-blue-800 italic">
-                    {currentCard.note}
-                  </p>
-                </div>
-              )}
-
-              {/* Next button */}
-              <Button
-                onClick={handleNext}
-                variant={
-                  validationResult.status === 'all'
-                    ? 'success'
-                    : validationResult.status === 'partial'
-                    ? 'secondary'
-                    : 'danger'
+          <div className="space-y-4">
+            <Input
+              label="Type the Spanish translation(s):"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !showFeedback) {
+                  handleCheck();
                 }
-                disabled={currentIndex === cards.length - 1}
-                className="w-full"
+              }}
+              placeholder="Enter answer (separate multiple with commas: esparcir, rociar)"
+              disabled={showFeedback}
+              className="text-lg"
+              helperText="💡 Tip: You can enter multiple translations separated by commas"
+            />
+
+            {!showFeedback ? (
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleCheck}
+                  disabled={!userAnswer.trim()}
+                  className="flex-1"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Check Answer
+                </Button>
+                <Button
+                  onClick={handleSkip}
+                  variant="secondary"
+                  disabled={currentIndex === cards.length - 1}
+                >
+                  Skip
+                </Button>
+              </div>
+            ) : validationResult && (
+              <div
+                ref={feedbackRef}
+                className={`p-6 rounded-lg ${
+                  validationResult.status === 'all'
+                    ? 'bg-green-50 border-2 border-green-500'
+                    : validationResult.status === 'partial'
+                    ? 'bg-warning-50 border-2 border-warning-500'
+                    : 'bg-red-50 border-2 border-red-500'
+                }`}
               >
-                {currentIndex === cards.length - 1
-                  ? 'Completed!'
-                  : 'Next Card'}
-              </Button>
-            </div>
-          )}
-        </div>
-      </Card>
+                {/* Header with status */}
+                <div className="flex items-center justify-center mb-4">
+                  {validationResult.status === 'all' ? (
+                    <>
+                      <Check className="w-8 h-8 text-green-600 mr-2" />
+                      <span className="text-2xl font-bold text-green-800">
+                        Perfect! All Correct!
+                      </span>
+                    </>
+                  ) : validationResult.status === 'partial' ? (
+                    <>
+                      <Check className="w-8 h-8 text-warning-600 mr-2" />
+                      <span className="text-2xl font-bold text-warning-800">
+                        Good! Partially Correct ({validationResult.correctCount}/
+                        {validationResult.totalProvided})
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-8 h-8 text-red-600 mr-2" />
+                      <span className="text-2xl font-bold text-red-800">
+                        Incorrect
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* User's answers breakdown */}
+                {validationResult.userAnswers.length > 0 && (
+                  <div className="mb-4 p-4 bg-white rounded-lg">
+                    <p className="font-semibold text-gray-700 mb-2">Your answers:</p>
+                    <div className="space-y-1">
+                      {validationResult.userAnswers.map((answer, idx) => {
+                        const isCorrect = validationResult.correctAnswers.includes(answer);
+                        return (
+                          <div key={idx} className="flex items-center gap-2">
+                            {isCorrect ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-600" />
+                            )}
+                            <span className={isCorrect ? 'text-green-700' : 'text-red-700'}>
+                              {answer}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Show missed translations */}
+                {validationResult.missedAnswers.length > 0 && (
+                  <div className="mb-4 p-4 bg-white rounded-lg">
+                    <p className="font-semibold text-gray-700 mb-2">
+                      Other valid translations you can learn:
+                    </p>
+                    <div className="space-y-1">
+                      {validationResult.missedAnswers.map((answer, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-lg">•</span>
+                          <span className="text-gray-900">{answer}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Note section */}
+                {currentCard.note && (
+                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-semibold text-blue-900 mb-1">
+                      📝 Note:
+                    </p>
+                    <p className="text-blue-800 italic">
+                      {currentCard.note}
+                    </p>
+                  </div>
+                )}
+
+                {/* Next button */}
+                <Button
+                  onClick={handleNext}
+                  variant={
+                    validationResult.status === 'all'
+                      ? 'success'
+                      : validationResult.status === 'partial'
+                      ? 'secondary'
+                      : 'danger'
+                  }
+                  disabled={currentIndex === cards.length - 1}
+                  className="w-full"
+                >
+                  {currentIndex === cards.length - 1
+                    ? 'Completed!'
+                    : 'Next Card'}
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentIndex === 0}
-          variant="ghost"
-        >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          Previous
-        </Button>
+      {!isCompleted && (
+        <div className="flex justify-between items-center">
+          <Button
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+            variant="ghost"
+          >
+            <ChevronLeft className="w-5 h-5 mr-1" />
+            Previous
+          </Button>
 
-        <span className="text-sm text-gray-500">
-          Use arrow keys to navigate
-        </span>
+          <span className="text-sm text-gray-500">
+            Use arrow keys to navigate
+          </span>
 
-        <Button
-          onClick={handleNext}
-          disabled={currentIndex === cards.length - 1}
-          variant="ghost"
-        >
-          Next
-          <ChevronRight className="w-5 h-5 ml-1" />
-        </Button>
-      </div>
+          <Button
+            onClick={handleNext}
+            disabled={currentIndex === cards.length - 1}
+            variant="ghost"
+          >
+            Next
+            <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
+        </div>
+      )}
 
       {/* Completion Message */}
-      {currentIndex === cards.length - 1 && showFeedback && (
+      {isCompleted && (
         <Card variant="elevated" className="mt-8 text-center bg-gradient-to-r from-primary-50 to-purple-50">
           <div className="text-6xl mb-4">🎉</div>
           <h3 className="text-3xl font-bold text-gray-900 mb-2">
