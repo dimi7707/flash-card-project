@@ -6,17 +6,26 @@ import { Prisma } from '@prisma/client';
 export const dynamic = 'force-dynamic'
 /**
  * GET /api/cards
- * Fetch all cards from database
+ * Fetch 10 random cards from database, shuffled for maximum randomness
  */
 export async function GET() {
   try {
-    const cards = await prisma.card.findMany({
-      orderBy: {
-        created_at: 'desc',
-      },
-    });
+    // Get all cards
+    const allCards = await prisma.card.findMany();
 
-    return NextResponse.json(cards);
+    if (allCards.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Shuffle all cards and take 10 random ones
+    const shuffled = allCards
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 10);
+
+    // Shuffle again to promote even more randomness in the order
+    const finalCards = shuffled.sort(() => Math.random() - 0.5);
+
+    return NextResponse.json(finalCards);
   } catch (error) {
     console.error('Error fetching cards:', error);
     return NextResponse.json(
