@@ -39,7 +39,7 @@ export default function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className} ${!isLoading ? 'flex items-center justify-center' : ''}`}
       disabled={disabled || isLoading}
       {...props}
     >
