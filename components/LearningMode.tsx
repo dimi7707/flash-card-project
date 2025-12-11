@@ -26,10 +26,38 @@ export default function LearningMode() {
 
   const cardRef = useRef<HTMLDivElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleNextRef = useRef<() => void>();
 
   useEffect(() => {
     fetchCards();
   }, []);
+
+  // Auto-focus en el input cuando se carga una nueva card o se resetea el estado
+  useEffect(() => {
+    if (!showFeedback && inputRef.current && !isLoading && cards.length > 0) {
+      // Pequeño delay para asegurar que el DOM esté listo después de las animaciones
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, showFeedback, isLoading, cards.length]);
+
+  // Auto-avance después de respuesta completamente correcta
+  useEffect(() => {
+    if (
+      validationResult?.status === 'all' &&
+      showFeedback &&
+      currentIndex < cards.length - 1
+    ) {
+      const timer = setTimeout(() => {
+        handleNextRef.current?.();
+      }, 2000); // 2 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [validationResult?.status, showFeedback, currentIndex, cards.length]);
 
   const fetchCards = async () => {
     try {
@@ -106,6 +134,11 @@ export default function LearningMode() {
       }
     }
   };
+
+  // Mantener referencia actualizada para el auto-avance
+  useEffect(() => {
+    handleNextRef.current = handleNext;
+  });
 
   const handleSkip = () => {
     handleNext();
@@ -186,6 +219,7 @@ export default function LearningMode() {
 
           <div className="space-y-4">
             <Input
+              ref={inputRef}
               label="Type the Spanish translation(s):"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
@@ -343,10 +377,6 @@ export default function LearningMode() {
             <ChevronLeft className="w-5 h-5 mr-1" />
             Previous
           </Button>
-
-          <span className="text-sm text-gray-500">
-            Use arrow keys to navigate
-          </span>
 
           <Button
             onClick={handleNext}
