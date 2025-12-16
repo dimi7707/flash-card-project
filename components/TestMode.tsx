@@ -117,7 +117,7 @@ export default function TestMode() {
         <Card variant="elevated" className="text-center">
           <div className="text-7xl mb-6">🏆</div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
             Ready for a Challenge?
           </h2>
 
@@ -166,7 +166,7 @@ export default function TestMode() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Progress Section */}
-      <div className="mb-8">
+      <div className="mb-4 md:mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-900">
             Question {currentIndex + 1} of {cards.length}
@@ -189,7 +189,7 @@ export default function TestMode() {
             Translate to Spanish
           </div>
 
-          <h3 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+          <h3 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4">
             {currentCard.english_word}
           </h3>
         </div>

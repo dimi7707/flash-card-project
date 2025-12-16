@@ -67,20 +67,20 @@ export default function ResultsScreen({
           )}
         </div>
 
-        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
           {score.passed
             ? 'Congratulations! 🎉'
             : 'Keep Practicing! 💪'}
         </h2>
 
-        <p className="text-xl text-gray-700 mb-8">
+        <p className="text-lg md:text-xl text-gray-700 mb-5 md:mb-6">
           {score.passed
             ? 'You passed the test!'
             : 'You need at least 12/15 to pass.'}
         </p>
 
-        <div className="grid grid-cols-3 gap-6 mb-8 max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg p-6 shadow-md">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-5 md:mb-6 max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md">
             <div className="text-4xl font-bold text-primary-600 mb-2">
               {score.correct}/{score.total}
             </div>
@@ -89,7 +89,7 @@ export default function ResultsScreen({
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-md">
+          <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md">
             <div className="text-4xl font-bold text-primary-600 mb-2">
               {score.percentage}%
             </div>
@@ -98,7 +98,7 @@ export default function ResultsScreen({
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-md">
+          <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md">
             <div className="text-4xl font-bold text-green-600 mb-2">
               {score.correct}
             </div>

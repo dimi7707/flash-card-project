@@ -184,7 +184,7 @@ export default function LearningMode() {
     <div className="max-w-3xl mx-auto">
       {/* Progress Indicator */}
       {!isCompleted && (
-        <div className="mb-8">
+        <div className="mb-4 md:mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700">
               Card {currentIndex + 1} of {cards.length}
@@ -212,7 +212,7 @@ export default function LearningMode() {
           className="mb-6 perspective-1000"
         >
           <div className="text-center mb-8">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4">
               {currentCard.english_word}
             </h2>
           </div>
