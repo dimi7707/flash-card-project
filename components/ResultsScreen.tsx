@@ -79,7 +79,7 @@ export default function ResultsScreen({
             : 'You need at least 12/15 to pass.'}
         </p>
 
-        <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-5 md:mb-6 max-w-2xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-5 md:mb-6 max-w-2xl mx-auto">
           <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md">
             <div className="text-4xl font-bold text-primary-600 mb-2">
               {score.correct}/{score.total}
@@ -98,7 +98,7 @@ export default function ResultsScreen({
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md">
+          <div className="bg-white rounded-lg p-4 md:p-5 lg:p-6 shadow-md col-span-2 md:col-span-1">
             <div className="text-4xl font-bold text-green-600 mb-2">
               {score.correct}
             </div>
