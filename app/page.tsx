@@ -1,15 +1,27 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Brain, Trophy } from "lucide-react";
+import WordCounter from "@/components/WordCounter";
 
 export default function Home() {
   return (
     <div className="container mx-auto px-4 py-4 md:py-6 lg:py-8">
       <div className="max-w-4xl mx-auto">
         {/* Hero Section */}
-        <div className="text-center mb-8 md:mb-10">
+        <div className="relative text-center mb-8 md:mb-10">
+          {/* Word Counter - Floating top-right (Very Large Desktop only) */}
+          <div className="hidden 2xl:block absolute top-0 2xl:right-16">
+            <WordCounter />
+          </div>
+
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
             Master English Vocabulary
           </h1>
+          
+          {/* Word Counter - Below title (Mobile, Tablet & Laptops) */}
+          <div className="flex justify-center mb-4 2xl:hidden">
+            <WordCounter />
+          </div>
+
           <p className="text-base md:text-lg text-gray-600 mb-6 md:mb-8 max-w-2xl mx-auto">
             Learn and practice English words with interactive flashcards.
             Create custom cards, practice at your own pace, and test your knowledge.
