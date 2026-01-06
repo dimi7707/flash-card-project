@@ -7,6 +7,8 @@ export interface Card {
   english_word: string;
   spanish_translations: string[]; // UPDATED: Now supports multiple translations
   note: string | null;
+  audio_url: string | null;
+  audio_generated_at: Date | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -57,4 +59,16 @@ export interface TestScore {
   incorrect: number;
   percentage: number;
   passed: boolean; // >= 12/15 (80%)
+}
+
+export interface AudioResponse {
+  audioUrl: string;
+  word: string;
+  cached: boolean;
+  message: string;
+}
+
+export interface AudioErrorResponse {
+  error: string;
+  details?: string;
 }
