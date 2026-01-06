@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ProgressBar from '@/components/ui/ProgressBar';
 import ResultsScreen from '@/components/ResultsScreen';
+import WordAudioPlayer from '@/components/WordAudioPlayer';
 import { validateMultipleTranslations } from '@/lib/utils';
 import { flipCard, fadeIn } from '@/lib/animations';
 import { PlayCircle } from 'lucide-react';
@@ -189,9 +190,17 @@ export default function TestMode() {
             Translate to Spanish
           </div>
 
-          <h3 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4">
-            {currentCard.english_word}
-          </h3>
+          <div className="relative inline-block">
+            <h3 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4 pr-12">
+              {currentCard.english_word}
+            </h3>
+            <div className="absolute top-0 right-0">
+              <WordAudioPlayer
+                cardId={currentCard.id}
+                size="md"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4">

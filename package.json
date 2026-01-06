@@ -7,6 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "clean": "rm -rf .next",
+    "dev:clean": "npm run clean && npm run dev",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
@@ -16,6 +18,8 @@
     "seed": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.958.0",
+    "@aws-sdk/client-s3": "^3.958.0",
     "@paralleldrive/cuid2": "^3.0.4",
     "@prisma/client": "^5.14.0",
     "gsap": "^3.12.5",
