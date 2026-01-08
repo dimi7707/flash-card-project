@@ -32,6 +32,8 @@ export default function WordAudioPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const hasAutoPlayedRef = useRef(false); // Rastrear si ya se reprodujo automáticamente
+  const audioUrlSetTimeRef = useRef<number | null>(null); // Timestamp cuando se estableció audioUrl
+  const isInitialLoadRef = useRef(true); // Rastrear si estamos en la carga inicial
  
   console.log('cardId desde el word audio player', cardId);
 
@@ -45,6 +47,8 @@ export default function WordAudioPlayer({
     setError(null);
     setIsLoading(true);
     hasAutoPlayedRef.current = false; // Resetear el flag de auto-play
+    audioUrlSetTimeRef.current = null; // Resetear el timestamp
+    isInitialLoadRef.current = true; // Resetear el flag de carga inicial
     
     // Cleanup del audio anterior
     if (audioRef.current) {
@@ -72,6 +76,8 @@ export default function WordAudioPlayer({
         if (!abortController.signal.aborted) {
           setAudioUrl(data.audioUrl);
           setIsLoading(false);
+          audioUrlSetTimeRef.current = Date.now(); // Registrar cuando se estableció el audioUrl
+          isInitialLoadRef.current = true; // Marcar como carga inicial
         }
       } catch (err) {
         // Ignorar errores de abort
@@ -104,24 +110,96 @@ export default function WordAudioPlayer({
   // Reproducir automáticamente cuando el audio se carga
   useEffect(() => {
     if (audioUrl && audioRef.current && !hasAutoPlayedRef.current) {
-      // Reproducir automáticamente solo la primera vez que se carga
+      const audioElement = audioRef.current;
+      const cleanupRefs: {
+        timeout: NodeJS.Timeout | null;
+        listener: (() => void) | null;
+        errorCheckTimeout: NodeJS.Timeout | null;
+      } = {
+        timeout: null,
+        listener: null,
+        errorCheckTimeout: null,
+      };
+      
+      // Verificar si hay un error real después de un tiempo razonable
+      // Esto nos permite detectar errores reales sin ser afectados por falsos positivos de Safari
+      cleanupRefs.errorCheckTimeout = setTimeout(() => {
+        if (audioElement.error) {
+          const errorCode = audioElement.error.code;
+          // Solo establecer error para errores reales después de 5 segundos
+          if (errorCode === 4 || errorCode === 2) {
+            console.error('Real audio error detected after timeout:', errorCode);
+            setError('Failed to play audio');
+            setIsPlaying(false);
+          }
+        }
+        // Después de 5 segundos, ya no es carga inicial
+        isInitialLoadRef.current = false;
+      }, 5000);
+      
+      // Función para intentar reproducir
       const playAudio = async () => {
         try {
-          await audioRef.current?.play();
-          hasAutoPlayedRef.current = true; // Marcar como reproducido
+          // Verificar que el audio esté listo antes de reproducir
+          // readyState >= 2 significa HAVE_CURRENT_DATA o superior
+          if (audioElement.readyState >= 2) {
+            await audioElement.play();
+            hasAutoPlayedRef.current = true;
+          } else {
+            // Si no está listo, esperar al evento canplay
+            const playWhenReady = async () => {
+              try {
+                await audioElement.play();
+                hasAutoPlayedRef.current = true;
+              } catch (err) {
+                // Auto-play bloqueado, no es un error real
+                console.warn('Auto-play was blocked:', err);
+                hasAutoPlayedRef.current = true; // Marcar como intentado para no volver a intentar
+              }
+              // Limpiar el timeout si el evento se disparó
+              if (cleanupRefs.timeout) {
+                clearTimeout(cleanupRefs.timeout);
+                cleanupRefs.timeout = null;
+              }
+            };
+            
+            cleanupRefs.listener = playWhenReady;
+            audioElement.addEventListener('canplay', playWhenReady, { once: true });
+            
+            // Fallback: si después de 3 segundos no está listo, no reproducir automáticamente
+            cleanupRefs.timeout = setTimeout(() => {
+              if (cleanupRefs.listener) {
+                audioElement.removeEventListener('canplay', cleanupRefs.listener);
+                cleanupRefs.listener = null;
+              }
+              hasAutoPlayedRef.current = true; // Marcar como intentado
+            }, 3000);
+          }
         } catch (err) {
-          // Algunos navegadores pueden bloquear auto-play
-          // En ese caso, simplemente no reproducimos automáticamente
+          // Auto-play bloqueado, no es un error real
           console.warn('Auto-play was blocked:', err);
+          hasAutoPlayedRef.current = true; // Marcar como intentado
         }
       };
       
-      // Pequeño delay para asegurar que el elemento audio esté listo
-      const timeoutId = setTimeout(() => {
+      // Pequeño delay para asegurar que el elemento audio esté en el DOM
+      const initialTimeout = setTimeout(() => {
         playAudio();
       }, 100);
 
-      return () => clearTimeout(timeoutId);
+      // Cleanup function
+      return () => {
+        clearTimeout(initialTimeout);
+        if (cleanupRefs.timeout) {
+          clearTimeout(cleanupRefs.timeout);
+        }
+        if (cleanupRefs.errorCheckTimeout) {
+          clearTimeout(cleanupRefs.errorCheckTimeout);
+        }
+        if (cleanupRefs.listener && audioElement) {
+          audioElement.removeEventListener('canplay', cleanupRefs.listener);
+        }
+      };
     }
   }, [audioUrl]);
 
@@ -132,7 +210,14 @@ export default function WordAudioPlayer({
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        // Cuando el usuario hace click, ya no es carga inicial
+        isInitialLoadRef.current = false;
+        audioRef.current.play().catch((err) => {
+          // Si falla al reproducir manualmente, entonces sí es un error real
+          console.error('Failed to play audio on user click:', err);
+          setError('Failed to play audio');
+          setIsPlaying(false);
+        });
         setIsPlaying(true);
       }
     }
@@ -144,6 +229,8 @@ export default function WordAudioPlayer({
     setAudioUrl(null);
     setIsLoading(true);
     hasAutoPlayedRef.current = false; // Resetear el flag para permitir auto-play después del retry
+    audioUrlSetTimeRef.current = null; // Resetear el timestamp
+    isInitialLoadRef.current = true; // Resetear el flag de carga inicial
     
     fetch(`/api/cards/${cardId}/audio`)
       .then((response) => {
@@ -155,6 +242,8 @@ export default function WordAudioPlayer({
       .then((data) => {
         setAudioUrl(data.audioUrl);
         setIsLoading(false);
+        audioUrlSetTimeRef.current = Date.now(); // Registrar cuando se estableció el audioUrl
+        isInitialLoadRef.current = true; // Marcar como carga inicial
       })
       .catch((err) => {
         const errorMessage =
@@ -230,11 +319,35 @@ export default function WordAudioPlayer({
           onEnded={() => setIsPlaying(false)}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={() => {
-            setError('Failed to play audio');
-            setIsPlaying(false);
+          onError={(e) => {
+            // SOLUCIÓN DEFINITIVA: Completamente ignorar onError durante la carga inicial
+            // Safari dispara onError falsos inmediatamente cuando se establece el src
+            // NO establecer error en absoluto si estamos en carga inicial
+            if (isInitialLoadRef.current) {
+              console.warn('Ignoring audio error during initial load (Safari quirk):', {
+                errorCode: e.currentTarget.error?.code,
+                readyState: e.currentTarget.readyState
+              });
+              return; // NO hacer nada, NO establecer error
+            }
+            
+            // Solo procesar errores después de que el usuario haya interactuado
+            // (isInitialLoadRef.current === false significa que el usuario ya hizo click)
+            const audioElement = e.currentTarget;
+            if (audioElement.error) {
+              const errorCode = audioElement.error.code;
+              // Solo establecer error para errores reales (código 2 o 4)
+              if (errorCode === 4 || errorCode === 2) {
+                console.error('Real audio error detected after user interaction:', errorCode);
+                setError('Failed to play audio');
+                setIsPlaying(false);
+              } else {
+                // Otros códigos pueden ser falsos positivos, especialmente en Safari
+                console.warn('Audio error code', errorCode, 'ignored (may be false positive)');
+              }
+            }
           }}
-          preload="none"
+          preload="auto"
         />
       )}
     </>
